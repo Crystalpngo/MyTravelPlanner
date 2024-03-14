@@ -3,17 +3,23 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 
 
 public class MyTravelPlanner {
 	
-	public static String getPlan(String weather, LocalDate date, LocalTime timeOfFirstAppointment, LocalTime timeOfLastAppointment) {
+			
+	
+	public static String getPlan(LocalDate date, String weather, 
+			LocalTime timeOfFirstAppointment, 
+			LocalTime timeOfLastAppointment) {
 		if (weather.equalsIgnoreCase("RAINY") || weather.equalsIgnoreCase("SNOWY")) {
 			return "Please cancel or reschedule your appointments on " + formatDate(date) +".";
 			
 		}
 		
-		boolean isWeekend = date.getDayOfWeek() == DayOfWeek.SATURDAY || date.getDayOfWeek() == DayOfWeek.SUNDAY;
+		boolean isWeekend = date.getDayOfWeek() == DayOfWeek.SATURDAY 
+				|| date.getDayOfWeek() == DayOfWeek.SUNDAY;
 		
 		LocalDate localDate = LocalDate.now();
 
@@ -37,12 +43,33 @@ public class MyTravelPlanner {
 			lastTrain = lastTrainWeekday;
 		}
 		
-	if (!timeOfFirstAppointment.isBefore(firstTrain.plusHours(1)) && !timeOfLastAppointment.plusHours(1).isAfter(lastTrain)) {
-		String departureTime = firstTrain.format(DateTimeFormatter.ofPattern("h:mm a"));
-		String returnTime = lastTrain.format(DateTimeFormatter.ofPattern("h:mm a"));
-		return "Please take the " + departureTime + " train to go to the city, and the " +returnTime + " train to get back home on " + formatDate(date) + ".";
+	if (!timeOfFirstAppointment.isBefore(firstTrain.plusHours(1)) 
+			&& !timeOfLastAppointment.plusHours(1).isAfter(lastTrain)) {
+		//String departureTime = firstTrain.format(DateTimeFormatter.ofPattern("h:mm a"));
+		timeOfFirstAppointment = timeOfFirstAppointment.truncatedTo(ChronoUnit.HOURS).plusMinutes(30 * (timeOfFirstAppointment.getMinute()/30));
+		LocalTime departureTime = timeOfFirstAppointment.minusHours(2);
+		String returnTime = timeOfLastAppointment.format(DateTimeFormatter.ofPattern("h:mm a"));		
+		timeOfLastAppointment = timeOfLastAppointment.truncatedTo(ChronoUnit.HOURS).plusMinutes(30 * (timeOfLastAppointment.getMinute()/30)).plusMinutes(30);		
+		
+		if (departureTime.equals("10:00") || departureTime.equals("12:00") || departureTime.equals("14:00")|| departureTime.equals("16:00")|| departureTime.equals("18:00")|| departureTime.equals("20:00")) {
+			return "Please take the " + departureTime + 
+					" train to go to the city, and the " 
+					+returnTime + " train to get back home on "
+					+ formatDate(date) + ".";
+		}else {
+			return "Please take the " + departureTime.plusMinutes(60) + 
+					" train to go to the city, and the " 
+					+returnTime + " train to get back home on "
+					+ formatDate(date) + ".";
+		}
+		
+		//String returnTime = lastTrain.format(DateTimeFormatter.ofPattern("h:mm a"))
+		
+		
+		
 	}else {
-		return "Please drive on " + formatDate(date)+ ", and leave the house at least an hour before your first appointment.";
+		return "Please drive on " + formatDate(date)
+		+ ", and leave the house at least an hour before your first appointment.";
 	}
 	}
 	
@@ -53,19 +80,19 @@ public class MyTravelPlanner {
 			
 	
 public static void main(String[] args) {
-	/*
 	Scanner scanner = new Scanner(System.in);
-	LocalDate dateOfPlan = LocalDate.parse("2024-02-14");
+	System.out.println("Please enter date of appointment: YYYY-MM-DD");
+	String appointmentDate = scanner.nextLine();
+	LocalDate dateOfPlan = LocalDate.parse(appointmentDate);
 	System.out.println("Please enter current weather prediction on "+ dateOfPlan);
 	String weather = scanner.nextLine();
 	System.out.println("Please enter the first appointment start time (XX:XX):");
 	LocalTime timeOfFirstAppointment = LocalTime.parse(scanner.nextLine());
 	System.out.println("Please eneter the last appointment end time (XX:XX):");
 	LocalTime timeOfLastAppointment = LocalTime.parse(scanner.nextLine());
-	*/
-	LocalDate dateOfPlan = LocalDate.parse("2024-02-14");
-	//String plan = getPlan(weather, dateOfPlan, timeOfFirstAppointment, timeOfLastAppointment);
-	String plan = getPlan("SUNNY", dateOfPlan, LocalTime.parse("09:00"), LocalTime.parse("17:00"));
+	
+	String plan = getPlan(dateOfPlan, weather, timeOfFirstAppointment,
+			timeOfLastAppointment);
 	System.out.println(plan);
 	
 }
